@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>AI Student Companion - Powered by Groq AI</title>
+  <meta name="description" content="AI Student Companion: Chatbot, Study Dashboard, Topic Explainer, Technical Interview Prep, MCQ Quiz Generator, and Document Analysis." />
+  
+  <!-- Favicon icon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>" />
+
+  <!-- Code Syntax Highlighting Theme (Highlight.js) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Main Application CSS -->
+  <link rel="stylesheet" href="/static/css/style.css?v=2.3" />
+</head>
+<body>
+  <div class="app-wrapper" id="app">
+    <!-- Mobile Backdrop -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- Collapsible Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <!-- Sidebar Header -->
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <span>Student Companion</span>
+          <span class="brand-badge">AI</span>
+        </div>
+        <button class="icon-btn" id="btn-collapse-sidebar" title="Collapse sidebar" aria-label="Collapse sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Main Navigation Menu -->
+      <nav class="sidebar-nav" style="display: flex; flex-direction: column; width: 100%; gap: 4px;">
+        <button class="nav-item active" data-view="chat" id="nav-chat" type="button" onclick="window.AIStudentCompanion.switchView('chat')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <span>AI Study Chat</span>
+        </button>
+        <button class="nav-item" data-view="dashboard" id="nav-dashboard" type="button" onclick="window.AIStudentCompanion.switchView('dashboard')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-view="explainer" id="nav-explainer" type="button" onclick="window.AIStudentCompanion.switchView('explainer')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <span>Topic Explainer</span>
+        </button>
+        <button class="nav-item" data-view="interview" id="nav-interview" type="button" onclick="window.AIStudentCompanion.switchView('interview')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          <span>Interview Prep</span>
+        </button>
+        <button class="nav-item" data-view="quiz" id="nav-quiz" type="button" onclick="window.AIStudentCompanion.switchView('quiz')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          <span>MCQ Quiz</span>
+        </button>
+        <button class="nav-item" data-view="history" id="nav-history" type="button" onclick="window.AIStudentCompanion.switchView('history')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          <span>Learning History</span>
+        </button>
+      </nav>
+
+      <!-- Actions: New Chat & Search (for Chat view) -->
+      <div class="sidebar-actions" id="chat-sidebar-actions">
+        <button class="new-chat-btn" id="btn-new-chat" type="button">
+          <div class="new-chat-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New chat</span>
+          </div>
+          <span class="new-chat-shortcut">Ctrl+Shift+O</span>
+        </button>
+
+        <div class="search-container">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="search-input" id="search-conversations" placeholder="Search chats..." autocomplete="off" />
+          <button class="icon-btn search-clear" id="search-clear" type="button" aria-label="Clear search">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- History Category & List -->
+      <div class="history-category" id="history-category-label">Recent Chats</div>
+      <div class="history-section" id="conversation-list">
+        <div class="history-empty">Loading history...</div>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <!-- User Profile Slot (Authentication state) -->
+        <div id="user-auth-slot">
+          <button class="login-prompt-btn" id="btn-open-auth" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            <span>Sign In / Sign Up</span>
+          </button>
+        </div>
+
+        <div class="footer-btn" style="cursor: default;">
+          <div class="footer-btn-left">
+            <span class="status-dot unconfigured" id="status-dot"></span>
+            <span style="font-size:12px; font-weight:500;">AI Engine</span>
+          </div>
+          <span class="model-indicator-badge" id="model-badge">Qwen 3.8 27B</span>
+        </div>
+
+        <button class="footer-btn" id="btn-settings" type="button">
+          <div class="footer-btn-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span>Settings</span>
+          </div>
+        </button>
+
+        <button class="footer-btn" id="btn-theme-toggle" type="button">
+          <div class="footer-btn-left">
+            <span id="theme-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </span>
+            <span>Switch Theme</span>
+          </div>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <main class="main-content">
+      <!-- Top Navbar -->
+      <header class="chat-navbar">
+        <div class="navbar-left">
+          <button class="icon-btn" id="btn-toggle-sidebar" title="Toggle sidebar" aria-label="Toggle sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="navbar-model-selector" id="top-model-selector" title="Switch AI model">
+            <span class="model-name">GroqChat</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+          <div class="navbar-title" id="active-chat-title">AI Study Chat</div>
+        </div>
+
+        <div class="navbar-right">
+          <button class="icon-btn" id="btn-clear-chat" title="Clear current chat" aria-label="Clear chat">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+
+          <button class="icon-btn" id="btn-new-chat-top" title="New chat" aria-label="New chat">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEW 1: AI Study Chat -->
+      <section class="view-panel active" id="view-chat" style="display: flex;">
+        <section class="chat-messages" id="chat-messages">
+          <div class="welcome-screen" id="welcome-screen">
+            <div class="welcome-logo">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <h1 class="welcome-title">How can I help you study today?</h1>
+            <p class="welcome-subtitle">Ask questions, upload study notes, practice exams, and learn faster.</p>
+
+            <div class="prompt-suggestions-grid">
+              <div class="suggestion-card" data-prompt="Explain quantum computing and superposition in simple terms with everyday analogies.">
+                <div class="suggestion-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </div>
+                <div>
+                  <div class="suggestion-text">Explain a complex topic simply</div>
+                  <div class="suggestion-desc">Quantum computing & superposition</div>
+                </div>
+              </div>
+
+              <div class="suggestion-card" data-prompt="Write a clean Python script using asyncio and aiohttp to fetch data concurrently with retry logic.">
+                <div class="suggestion-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                </div>
+                <div>
+                  <div class="suggestion-text">Help me write Python code</div>
+                  <div class="suggestion-desc">Async concurrent fetcher with retries</div>
+                </div>
+              </div>
+
+              <div class="suggestion-card" data-prompt="Act as an interviewer for a Senior Full-Stack Engineer role. Ask me 3 challenging architecture questions.">
+                <div class="suggestion-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <div>
+                  <div class="suggestion-text">Prepare me for an interview</div>
+                  <div class="suggestion-desc">Full-stack system design questions</div>
+                </div>
+              </div>
+
+              <div class="suggestion-card" data-prompt="Summarize the core principles of the ACID database properties vs CAP theorem in distributed systems.">
+                <div class="suggestion-icon">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+                <div>
+                  <div class="suggestion-text">Summarize a concept</div>
+                  <div class="suggestion-desc">ACID vs CAP theorem trade-offs</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-inner" id="chat-inner"></div>
+        </section>
+
+        <!-- Message Composer -->
+        <footer class="chat-composer-container" id="chat-composer">
+          <div class="file-preview-bar" id="composer-file-preview">
+            <div class="file-preview-left">
+              <span class="file-type-icon" id="file-icon-badge">📄</span>
+              <div class="file-preview-info">
+                <span class="file-preview-name" id="file-name-badge">filename.pdf</span>
+                <span class="file-preview-status" id="file-status-badge">Extracting text...</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="icon-btn" id="btn-remove-file" type="button" title="Remove attached file" aria-label="Remove attached file">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="file-pills-row" id="file-pills-row" style="display:none;">
+            <button class="file-quick-pill" id="pill-summarize" type="button">📄 Summarize Document</button>
+            <button class="file-quick-pill" id="pill-questions" type="button">❓ Key Questions & Answers</button>
+            <button class="file-quick-pill" id="pill-mcq" type="button">📝 Generate MCQ Quiz</button>
+          </div>
+
+          <div class="composer-box">
+            <input type="file" id="file-upload-input" accept=".pdf,.docx,.txt,.jpg,.jpeg,.png" style="display:none;" />
+            
+            <div class="composer-input-row">
+              <button class="btn-upload" id="btn-upload-file" type="button" title="Upload PDF, DOCX, TXT, or Image" aria-label="Upload document or image">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                </svg>
+              </button>
+
+              <textarea
+                class="composer-textarea"
+                id="message-input"
+                rows="1"
+                placeholder="Ask anything or upload notes (PDF, Word, TXT, Images)..."
+                aria-label="Message GroqChat"
+              ></textarea>
+            </div>
+
+            <div class="composer-controls">
+              <div class="composer-left-info">
+                <span id="char-counter">0 chars</span>
+              </div>
+
+              <div class="composer-right-actions">
+                <button class="stop-btn" id="btn-stop" type="button" title="Stop generation">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="6" width="12" height="12" rx="2"></rect>
+                  </svg>
+                </button>
+
+                <button class="send-btn" id="btn-send" type="button" disabled title="Send message" aria-label="Send message">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="composer-disclaimer">
+            AI Student Companion powered by Groq Ultra-Fast LPU Inference. Verify critical academic formulas.
+          </div>
+        </footer>
+      </section>
+
+      <!-- VIEW 2: Dashboard -->
+      <section class="view-panel" id="view-dashboard" style="display: none;">
+        <div class="view-container">
+          <div class="view-header">
+            <h1 class="view-title"><span>📊 Learning Dashboard</span></h1>
+            <p class="view-subtitle" id="dashboard-welcome-msg">Welcome to your personalized learning space.</p>
+          </div>
+
+          <div class="streak-banner">
+            <div class="streak-banner-text">
+              <h3 id="dash-streak-title">🔥 1 Day Study Streak</h3>
+              <p>Keep studying every day to build your streak and master new topics!</p>
+            </div>
+            <div class="streak-badge-large" id="dash-streak-badge">
+              <span>🔥</span>
+              <span id="dash-streak-count">1 Day</span>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">📚</div>
+              <div class="stat-info">
+                <span class="stat-number" id="dash-stat-sessions">0</span>
+                <span class="stat-label">Study Sessions</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📝</div>
+              <div class="stat-info">
+                <span class="stat-number" id="dash-stat-quizzes">0</span>
+                <span class="stat-label">Completed Quizzes</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-info">
+                <span class="stat-number" id="dash-stat-avg-score">0%</span>
+                <span class="stat-label">Average Score</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">💡</div>
+              <div class="stat-info">
+                <span class="stat-number" id="dash-stat-topics">0</span>
+                <span class="stat-label">Saved Topics</span>
+              </div>
+            </div>
+          </div>
+
+          <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 14px; color: var(--text-primary);">Quick Actions</h3>
+          <div class="quick-actions-grid">
+            <div class="action-card" data-action="go-chat" onclick="window.AIStudentCompanion.switchView('chat')">
+              <div class="action-card-icon">💬</div>
+              <div class="action-card-title">AI Study Chat</div>
+              <div class="action-card-desc">Ask questions, upload study files, and get fast answers.</div>
+            </div>
+            <div class="action-card" data-action="go-explainer" onclick="window.AIStudentCompanion.switchView('explainer')">
+              <div class="action-card-icon">💡</div>
+              <div class="action-card-title">Explore a Topic</div>
+              <div class="action-card-desc">Generate summaries, code snippets, and interview tips.</div>
+            </div>
+            <div class="action-card" data-action="go-interview" onclick="window.AIStudentCompanion.switchView('interview')">
+              <div class="action-card-icon">🎯</div>
+              <div class="action-card-title">Interview Practice</div>
+              <div class="action-card-desc">Practice technical questions for your dream engineering role.</div>
+            </div>
+            <div class="action-card" data-action="go-quiz" onclick="window.AIStudentCompanion.switchView('quiz')">
+              <div class="action-card-icon">📝</div>
+              <div class="action-card-title">Take an MCQ Quiz</div>
+              <div class="action-card-desc">Generate 3-10 questions with instant scoring & explanations.</div>
+            </div>
+          </div>
+
+          <div class="dashboard-columns">
+            <div>
+              <div class="dashboard-column-title"><span>Recent Activities</span></div>
+              <div class="activity-list" id="dashboard-recent-activities">
+                <div class="card-box" style="text-align:center; color:var(--text-muted); font-size:13px;">No recent activities yet. Start a chat or take a quiz!</div>
+              </div>
+            </div>
+            <div>
+              <div class="dashboard-column-title"><span>Recent Quizzes</span></div>
+              <div class="activity-list" id="dashboard-recent-quizzes">
+                <div class="card-box" style="text-align:center; color:var(--text-muted); font-size:13px;">No completed quizzes yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: AI Topic Explainer -->
+      <section class="view-panel" id="view-explainer" style="display: none;">
+        <div class="view-container">
+          <div class="view-header">
+            <h1 class="view-title"><span>💡 AI Topic Explainer</span></h1>
+            <p class="view-subtitle">Get structured summaries, deep-dive explanations, real-world examples, code snippets, and interview tips.</p>
+          </div>
+
+          <div class="card-box">
+            <div class="tool-form-grid">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="explainer-topic-input">Topic or Concept</label>
+                <input type="text" class="form-input" id="explainer-topic-input" placeholder="e.g. Binary Search Trees, Docker Containers, CAP Theorem..." />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="explainer-subject-select">Subject / Field</label>
+                <select class="form-select" id="explainer-subject-select">
+                  <option value="Computer Science">Computer Science</option>
+                  <option value="Data Structures & Algorithms">Data Structures & Algorithms</option>
+                  <option value="Web Development">Web Development</option>
+                  <option value="System Design">System Design</option>
+                  <option value="Machine Learning & AI">Machine Learning & AI</option>
+                  <option value="Databases & SQL">Databases & SQL</option>
+                  <option value="Mathematics">Mathematics</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="explainer-level-select">Depth Level</label>
+                <select class="form-select" id="explainer-level-select">
+                  <option value="Beginner">Beginner (Simple Analogies)</option>
+                  <option value="Intermediate" selected>Intermediate (Comprehensive)</option>
+                  <option value="Advanced">Advanced (Deep Technical)</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" id="btn-generate-explanation" type="button" style="height:40px; padding:0 20px;">
+                <span>Explain Topic</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="explainer-results-area" style="display:none;">
+            <div class="tool-action-header">
+              <div>
+                <h2 id="explainer-result-title" style="font-size:20px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">Topic Title</h2>
+                <span class="badge-pill" id="explainer-result-badge">Computer Science</span>
+              </div>
+              <div style="display:flex; gap:10px;">
+                <button class="btn btn-secondary" id="btn-save-explanation" type="button" style="font-size:13px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                  <span>Save Explanation</span>
+                </button>
+                <button class="btn btn-secondary" id="btn-ask-chat-followup" type="button" style="font-size:13px;">
+                  <span>Ask in Chat</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="tool-section-card">
+              <h4>📌 1. High-Level Summary</h4>
+              <div id="explainer-section-summary" class="markdown-body" style="font-size:14px; line-height:1.6;"></div>
+            </div>
+
+            <div class="tool-section-card">
+              <h4>📖 2. Detailed In-Depth Explanation</h4>
+              <div id="explainer-section-detail" class="markdown-body" style="font-size:14px; line-height:1.6;"></div>
+            </div>
+
+            <div class="tool-section-card">
+              <h4>💡 3. Real-World Examples & Analogies</h4>
+              <div id="explainer-section-examples" class="markdown-body" style="font-size:14px; line-height:1.6;"></div>
+            </div>
+
+            <div class="tool-section-card">
+              <h4>💻 4. Code Snippets & Implementation</h4>
+              <div id="explainer-section-code" class="markdown-body" style="font-size:14px; line-height:1.6;"></div>
+            </div>
+
+            <div class="tool-section-card">
+              <h4>🎯 5. Interview Tips & Gotchas</h4>
+              <div id="explainer-section-tips" class="markdown-body" style="font-size:14px; line-height:1.6;"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:36px;">
+            <h3 style="font-size:16px; font-weight:600; margin-bottom:14px; color:var(--text-primary);">Your Saved Explanations</h3>
+            <div class="activity-list" id="saved-explanations-list">
+              <div class="card-box" style="text-align:center; color:var(--text-muted); font-size:13px;">No saved explanations yet. Explore and save topics above!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: Interview Preparation -->
+      <section class="view-panel" id="view-interview" style="display: none;">
+        <div class="view-container">
+          <div class="view-header">
+            <h1 class="view-title"><span>🎯 Technical Interview Preparation</span></h1>
+            <p class="view-subtitle">Generate realistic technical interview questions, complete model answers, key talking points, and preparation tips.</p>
+          </div>
+
+          <div class="card-box">
+            <div class="tool-form-grid">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="interview-subject-input">Subject / Technology</label>
+                <input type="text" class="form-input" id="interview-subject-input" placeholder="e.g. Python & Django, System Design, React, SQL..." />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="interview-role-input">Target Role</label>
+                <input type="text" class="form-input" id="interview-role-input" placeholder="e.g. Backend Developer, Frontend Engineer..." />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="interview-diff-select">Difficulty</label>
+                <select class="form-select" id="interview-diff-select">
+                  <option value="Beginner">Entry-Level / Junior</option>
+                  <option value="Intermediate" selected>Mid-Level</option>
+                  <option value="Advanced">Senior / Lead</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" id="btn-generate-interview" type="button" style="height:40px; padding:0 20px;">
+                <span>Generate Questions</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="interview-results-area" style="display:none;">
+            <div class="tool-action-header">
+              <div>
+                <h2 id="interview-result-role" style="font-size:20px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">Role Title</h2>
+                <span class="badge-pill medium" id="interview-result-badge">Intermediate</span>
+              </div>
+              <button class="btn btn-secondary" id="btn-save-interview" type="button" style="font-size:13px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                <span>Saved to History</span>
+              </button>
+            </div>
+
+            <div class="tool-section-card" id="interview-tips-card" style="margin-bottom:20px;">
+              <h4>💡 Interviewer's Preparation Advice</h4>
+              <ul id="interview-tips-list" style="padding-left:20px; color:var(--text-secondary); font-size:14px; line-height:1.6;"></ul>
+            </div>
+
+            <div id="interview-questions-accordion"></div>
+          </div>
+
+          <div style="margin-top:36px;">
+            <h3 style="font-size:16px; font-weight:600; margin-bottom:14px; color:var(--text-primary);">Past Interview Prep Sessions</h3>
+            <div class="activity-list" id="past-interview-sessions-list">
+              <div class="card-box" style="text-align:center; color:var(--text-muted); font-size:13px;">No saved interview sessions yet.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 5: MCQ Quiz Generator -->
+      <section class="view-panel" id="view-quiz" style="display: none;">
+        <div class="view-container">
+          <div class="view-header">
+            <h1 class="view-title"><span>📝 MCQ Quiz Generator</span></h1>
+            <p class="view-subtitle">Generate 3–10 questions with four options, explanations, automatic scoring, and saved quiz history.</p>
+          </div>
+
+          <div class="card-box">
+            <div class="tool-form-grid">
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="quiz-topic-input">Quiz Topic or Subject</label>
+                <input type="text" class="form-input" id="quiz-topic-input" placeholder="e.g. Operating Systems, Python OOP, Database Normalization..." />
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="quiz-count-select">Number of Questions</label>
+                <select class="form-select" id="quiz-count-select">
+                  <option value="3">3 Questions (Quick Test)</option>
+                  <option value="5" selected>5 Questions (Standard)</option>
+                  <option value="7">7 Questions</option>
+                  <option value="10">10 Questions (Comprehensive)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label" for="quiz-diff-select">Difficulty</label>
+                <select class="form-select" id="quiz-diff-select">
+                  <option value="Easy">Easy</option>
+                  <option value="Medium" selected>Medium</option>
+                  <option value="Hard">Hard</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" id="btn-generate-quiz" type="button" style="height:40px; padding:0 20px;">
+                <span>Generate Quiz</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="quiz-active-area" style="display:none;">
+            <div class="tool-action-header">
+              <div>
+                <h2 id="quiz-active-title" style="font-size:20px; font-weight:700; color:var(--text-primary); margin-bottom:4px;">Quiz Topic</h2>
+                <span class="badge-pill" id="quiz-active-badge">Medium • 5 Questions</span>
+              </div>
+            </div>
+
+            <div id="quiz-questions-list"></div>
+
+            <div style="margin-top:24px; text-align:right;">
+              <button class="btn btn-primary" id="btn-submit-quiz" type="button" style="font-size:15px; padding:12px 28px;">
+                <span>Submit Quiz for Scoring</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="quiz-results-banner" class="card-box" style="display:none; text-align:center; padding:32px 20px;">
+            <div style="font-size:42px; margin-bottom:12px;" id="quiz-score-icon">🎉</div>
+            <h2 style="font-size:28px; font-weight:700; color:var(--text-primary); margin-bottom:6px;" id="quiz-score-text">Score: 4 / 5 (80%)</h2>
+            <p style="font-size:14px; color:var(--text-muted); margin-bottom:20px;" id="quiz-feedback-text">Great job! You have a solid grasp of this topic.</p>
+            <div style="display:flex; justify-content:center; gap:12px;">
+              <button class="btn btn-secondary" id="btn-retake-quiz" type="button">Retake Quiz</button>
+              <button class="btn btn-primary" id="btn-new-quiz-gen" type="button">Create Another Quiz</button>
+            </div>
+          </div>
+
+          <div style="margin-top:36px;">
+            <h3 style="font-size:16px; font-weight:600; margin-bottom:14px; color:var(--text-primary);">Quiz History</h3>
+            <div class="activity-list" id="past-quizzes-list">
+              <div class="card-box" style="text-align:center; color:var(--text-muted); font-size:13px;">No quiz records yet. Take your first quiz above!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 6: Learning History -->
+      <section class="view-panel" id="view-history" style="display: none;">
+        <div class="view-container">
+          <div class="view-header">
+            <h1 class="view-title"><span>📜 Learning History</span></h1>
+            <p class="view-subtitle">View, search, reopen, and delete your chats, saved explanations, interview sessions, and quiz results.</p>
+          </div>
+
+          <div class="card-box" style="padding:16px;">
+            <div style="margin-bottom:14px;">
+              <input type="text" class="form-input" id="history-search-input" placeholder="Search across all learning history..." />
+            </div>
+
+            <div class="history-filter-tabs">
+              <button class="history-filter-btn active" data-type="all" type="button">All Items</button>
+              <button class="history-filter-btn" data-type="chats" type="button">💬 AI Chats</button>
+              <button class="history-filter-btn" data-type="explanations" type="button">💡 Explanations</button>
+              <button class="history-filter-btn" data-type="interviews" type="button">🎯 Interview Preps</button>
+              <button class="history-filter-btn" data-type="quizzes" type="button">📝 Quizzes</button>
+            </div>
+          </div>
+
+          <div class="history-items-grid" id="history-items-container">
+            <div class="card-box" style="text-align:center; color:var(--text-muted); font-size:13px;">Loading learning history...</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- MODALS -->
+    <!-- Authentication Modal -->
+    <div class="modal-overlay" id="auth-modal">
+      <div class="modal-content" style="max-width:440px;">
+        <div class="modal-header">
+          <div class="modal-title" id="auth-modal-title">Student Account</div>
+          <button class="icon-btn" id="btn-close-auth" type="button" aria-label="Close modal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="auth-nav-tabs">
+            <button class="auth-tab-btn active" id="tab-login" type="button">Sign In</button>
+            <button class="auth-tab-btn" id="tab-signup" type="button">Create Account</button>
+          </div>
+
+          <div class="auth-alert-box" id="auth-alert"></div>
+
+          <form id="form-login" style="display:block;">
+            <div class="form-group">
+              <label class="form-label" for="login-username">Username or Email</label>
+              <input type="text" class="form-input" id="login-username" placeholder="Enter username or email" autocomplete="username" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="login-password">Password</label>
+              <input type="password" class="form-input" id="login-password" placeholder="Enter password" autocomplete="current-password" required />
+            </div>
+            <button class="btn btn-primary" type="submit" style="width:100%; padding:11px; margin-top:8px;">
+              <span>Sign In</span>
+            </button>
+          </form>
+
+          <form id="form-signup" style="display:none;">
+            <div class="form-group">
+              <label class="form-label" for="signup-name">Full Name</label>
+              <input type="text" class="form-input" id="signup-name" placeholder="e.g. Jane Doe" autocomplete="name" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="signup-username">Username</label>
+              <input type="text" class="form-input" id="signup-username" placeholder="Choose a username" autocomplete="username" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="signup-email">Email Address</label>
+              <input type="email" class="form-input" id="signup-email" placeholder="name@example.com" autocomplete="email" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="signup-password">Password</label>
+              <input type="password" class="form-input" id="signup-password" placeholder="At least 6 characters" autocomplete="new-password" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="signup-confirm-password">Confirm Password</label>
+              <input type="password" class="form-input" id="signup-confirm-password" placeholder="Repeat password" autocomplete="new-password" required />
+            </div>
+            <button class="btn btn-primary" type="submit" style="width:100%; padding:11px; margin-top:8px;">
+              <span>Create Free Account</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clear Chat Confirmation Modal -->
+    <div class="modal-overlay" id="clear-chat-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Clear conversation?</div>
+        </div>
+        <div class="modal-body">
+          This will clear all messages from the current conversation while keeping your chat session ready.
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-cancel-clear" type="button">Cancel</button>
+          <button class="btn btn-danger" id="btn-confirm-clear" type="button">Clear Chat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="delete-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title" id="delete-modal-title">Delete item?</div>
+        </div>
+        <div class="modal-body" id="delete-modal-body">
+          This will permanently delete this record. This action cannot be undone.
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-cancel-delete" type="button">Cancel</button>
+          <button class="btn btn-danger" id="btn-confirm-delete" type="button">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">Settings & AI Configuration</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="select-model">Groq AI Model</label>
+            <select class="form-select" id="select-model">
+              <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Recommended)</option>
+              <option value="openai/gpt-oss-120b">GPT-OSS 120B</option>
+              <option value="openai/gpt-oss-20b">GPT-OSS 20B</option>
+              <option value="allam-2-7b">ALLaM 2 7B</option>
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B Versatile</option>
+              <option value="llama-3.1-8b-instant">Llama 3.1 8B Instant</option>
+            </select>
+            <span class="form-hint">Selected model will be used for all chats, quizzes, and explanations.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="input-api-key">Custom Groq API Key (Optional)</label>
+            <input
+              type="password"
+              class="form-input"
+              id="input-api-key"
+              placeholder="gsk_..."
+              autocomplete="off"
+            />
+            <span class="form-hint">
+              Overrides server <code>.env</code> key for your browser session. Key stays stored locally in your browser. Get a free key at <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">console.groq.com</a>.
+            </span>
+          </div>
+
+          <div style="display:flex; align-items:center; justify-content:space-between;">
+            <button class="btn btn-secondary" id="btn-test-key" type="button" style="font-size:12px;">Test API Key</button>
+            <div id="key-validation-result" style="font-size:12px;"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="btn-close-settings" type="button">Cancel</button>
+          <button class="btn btn-primary" id="btn-save-settings" type="button">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden CSRF token element for vanilla JS fallback -->
+    <div style="display:none;" id="csrf-token-holder"></div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script src="/static/js/script.js?v=2.3"></script>
+</body>
+</html>
